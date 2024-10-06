@@ -11,24 +11,19 @@
             const P = parseFloat(document.getElementById("pressure").value);
             const P_w = parseFloat(document.getElementById("water_pressure").value);
 
-            // Default critical values
             const T_crit = 0;  // Critical temperature in °C
             const P_crit = 1;  // Critical pressure in MPa
             const P_w_crit = 0.05;  // Critical water vapor pressure in MPa
 
-            // Weighting coefficients
             const alpha = 1;
             const beta = 2;
             const gamma = 3;
 
-            // Hydrate risk equation
             let R = alpha * (T_crit - T) + beta * (P - P_crit) + gamma * (P_w - P_w_crit);
             R = Math.max(0, Math.min(100, R)); // Cap the risk at 100
 
-            // Display the result
             document.getElementById("result").innerHTML = `Risk of Hydrate Formation: ${R}`;
             
-            // Show suggestions if risk is greater than 0
             let suggestions = "";
             if (R > 0) {
                 suggestions += "<strong>Suggestions to reduce risk:</strong><ul>";
@@ -47,6 +42,15 @@
             }
 
             document.getElementById("suggestions").innerHTML = suggestions;
+
+            const riskFormula = "R = α * (T_crit - T) + β * (P - P_crit) + γ * (P_w - P_w_crit)";
+            const clapeyronFormula = "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
+            document.getElementById("formulas").innerHTML = `
+                <h4>Equation Used for Hydrate Formation Risk:</h4>
+                <p>${riskFormula}</p>
+                <h4>Clausius-Clapeyron Equation with Water Content:</h4>
+                <p>${clapeyronFormula}</p>
+            `;
         }
     </script>
 </head>
@@ -73,6 +77,7 @@
         <div class="mt-5">
             <h2 id="result"></h2>
             <div id="suggestions"></div>
+            <div id="formulas" class="mt-3"></div>
         </div>
     </div>
 </body>
