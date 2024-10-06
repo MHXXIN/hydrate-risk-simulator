@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydrate Formation Risk Calculator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script>
+        function calculateRisk() {
+            const T = parseFloat(document.getElementById("temperature").value);
+            const P = parseFloat(document.getElementById("pressure").value);
+            const P_w = parseFloat(document.getElementById("water_pressure").value);
+
+            // Default critical values
+            const T_crit = 0;  // Critical temperature in °C
+            const P_crit = 1;  // Critical pressure in MPa
+            const P_w_crit = 0.05;  // Critical water vapor pressure in MPa
+
+            // Weighting coefficients
+            const alpha = 1;
+            const beta = 2;
+            const gamma = 3;
+
+            // Hydrate risk equation
+            let R = alpha * (T_crit - T) + beta * (P - P_crit) + gamma * (P_w - P_w_crit);
+            R = Math.max(0, Math.min(100, R)); // Cap the risk at 100
+
+            // Display the result
+            document.getElementById("result").innerHTML = `Risk of Hydrate Formation: ${R}`;
+            
+            // Show suggestions if risk is greater than 0
+            let suggestions = "";
+            if (R > 0) {
+                suggestions += "<strong>Suggestions to reduce risk:</strong><ul>";
+                if (T < T_crit) {
+                    suggestions += `<li>Increase temperature to at least ${T_crit}°C.</li>`;
+                }
+                if (P > P_crit) {
+                    suggestions += `<li>Reduce pressure to at most ${P_crit} MPa.</li>`;
+                }
+                if (P_w > P_w_crit) {
+                    suggestions += `<li>Reduce water vapor pressure to at most ${P_w_crit} MPa.</li>`;
+                }
+                suggestions += "</ul>";
+            } else {
+                suggestions = "No hydrate formation risk.";
+            }
+
+            document.getElementById("suggestions").innerHTML = suggestions;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Hydrate Formation Risk Calculator</h1>
+        <form onsubmit="event.preventDefault(); calculateRisk();">
+            <div class="form-group">
+                <label for="temperature">Temperature (°C)</label>
+                <input type="number" class="form-control" id="temperature" placeholder="Enter temperature (e.g. -4)" required>
+            </div>
+            <div class="form-group">
+                <label for="pressure">Pressure (MPa)</label>
+                <input type="number" class="form-control" id="pressure" placeholder="Enter pressure (e.g. 1)" required>
+            </div>
+            <div class="form-group">
+                <label for="water_pressure">Water Vapor Pressure (MPa)</label>
+                <input type="number" class="form-control" id="water_pressure" step="0.01" placeholder="Enter water vapor pressure (e.g. 0.05)" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Calculate Risk</button>
+        </form>
+
+        <div class="mt-5">
+            <h2 id="result"></h2>
+            <div id="suggestions"></div>
+        </div>
+    </div>
+</body>
+</html>
