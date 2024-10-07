@@ -3,79 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hydrate Formation Risk Calculator</title>
+    <title>Advanced Hydrate Formation Risk Calculator</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script>
+        const gasData = {
+            "Methane": { T_crit: 0, P_crit: 1, P_w_crit: 0.05, C: 1.5, enthalpy: 2100 },
+            "Ethane": { T_crit: -10, P_crit: 2, P_w_crit: 0.08, C: 1.7, enthalpy: 1800 },
+            "Propane": { T_crit: -15, P_crit: 2.5, P_w_crit: 0.1, C: 2, enthalpy: 1600 }
+        };
+
         function calculateRisk() {
+            // Get user inputs
             const T = parseFloat(document.getElementById("temperature").value);
             const P = parseFloat(document.getElementById("pressure").value);
             const P_w = parseFloat(document.getElementById("water_pressure").value);
+            const gas = getGas();
 
-            const T_crit = 0;  // Critical temperature in °C
-            const P_crit = 1;  // Critical pressure in MPa
-            const P_w_crit = 0.05;  // Critical water vapor pressure in MPa
-
-            const alpha = 1;
-            const beta = 2;
-            const gamma = 3;
-
-            let R = alpha * (T_crit - T) + beta * (P - P_crit) + gamma * (P_w - P_w_crit);
-            R = Math.max(0, Math.min(100, R)); // Cap the risk at 100
-
-            document.getElementById("result").innerHTML = `Risk of Hydrate Formation: ${R}`;
+            // Determine critical values: use custom inputs or defaults based on gas type selection
+            const T_crit = parseFloat(document.getElementById("custom_T_crit").value) || (gas !== "None" ? gasData[gas].T_crit : 0);
+            const P_crit = parseFloat(document.getElementById("custom_P_crit").value) || (gas !== "None" ? gasData[gas].P_crit : 1);
+            const P_w_crit = parseFloat(document.getElementById("custom_P_w_crit").value) || (gas !== "None" ? gasData[gas].P_w_crit : 0.05);
+            const alpha = parseFloat(document.getElementById("alpha").value) || 1;
+            const beta = parseFloat(document.getElementById("beta").value) || 2;
+            const gamma = parseFloat(document.getElementById("gamma").value) || 3;
             
+            // Risk Calculation Formula
+            let R = alpha * Math.abs(T_crit - T) ** 1.1 + beta * Math.abs(P - P_crit) ** 1.2 + gamma * Math.abs(P_w - P_w_crit) ** 1.3;
+
+            // Display Risk Score and Percentage
+            document.getElementById("result").innerHTML = `Risk of Hydrate Formation Score: ${R.toFixed(2)}`;
+            document.getElementById("resultPercentage").innerHTML = `Risk of Hydrate Formation Percentage: ${(R).toFixed(2)}%`;
+
+            // Suggestions for risk reduction
             let suggestions = "";
             if (R > 0) {
-                suggestions += "<strong>Suggestions to reduce risk:</strong><ul>";
-                if (T < T_crit) {
-                    suggestions += `<li>Increase temperature to at least ${T_crit}°C.</li>`;
-                }
-                if (P > P_crit) {
-                    suggestions += `<li>Reduce pressure to at most ${P_crit} MPa.</li>`;
-                }
-                if (P_w > P_w_crit) {
-                    suggestions += `<li>Reduce water vapor pressure to at most ${P_w_crit} MPa.</li>`;
-                }
+                suggestions += "<strong>Suggestions:</strong><ul>";
+                if (T < T_crit) suggestions += `<li>Increase temperature to at least ${T_crit}°C.</li>`;
+                if (P > P_crit) suggestions += `<li>Reduce pressure to ${P_crit} MPa or lower.</li>`;
+                if (P_w > P_w_crit) suggestions += `<li>Reduce water vapor pressure to ${P_w_crit} MPa.</li>`;
                 suggestions += "</ul>";
             } else {
                 suggestions = "No hydrate formation risk.";
             }
-
             document.getElementById("suggestions").innerHTML = suggestions;
 
-            const riskFormula = "R = α * (T_crit - T) + β * (P - P_crit) + γ * (P_w - P_w_crit)";
-            const clapeyronFormula = "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
+            // Display formulas
+            displayFormulas(T, P, P_w);
+        }
+
+        function displayFormulas(T, P, P_w) {
+            const riskFormula = "R = α * |T_crit - T|^1.1 + β * |P - P_crit|^1.2 + γ * |P_w - P_w_crit|^1.3";
+            const gas = getGas();
+            const clapeyronFormula = gas !== "None" 
+                ? `ln(P) = (${gasData[gas].enthalpy} / R) * (1 / T) + ${gasData[gas].C} + k * ${P_w}`
+                : "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
+
             document.getElementById("formulas").innerHTML = `
-                <h4>Equation Used for Hydrate Formation Risk:</h4>
+                <h4>Hydrate Formation Risk Calculation:</h4>
                 <p>${riskFormula}</p>
                 <h4>Clausius-Clapeyron Equation with Water Content:</h4>
                 <p>${clapeyronFormula}</p>
             `;
         }
+
+        function getGas() {
+            return document.getElementById("gas_type").value;
+        }
     </script>
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-5">Hydrate Formation Risk Calculator</h1>
+        <h1 class="mt-5">Advanced Hydrate Formation Risk Calculator</h1>
         <form onsubmit="event.preventDefault(); calculateRisk();">
             <div class="form-group">
+                <label for="gas_type">Gas Type</label>
+                <select id="gas_type" class="form-control">
+                    <option value="None">None</option>
+                    <option value="Methane">Methane</option>
+                    <option value="Ethane">Ethane</option>
+                    <option value="Propane">Propane</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="temperature">Temperature (°C)</label>
-                <input type="number" class="form-control" id="temperature" placeholder="Enter temperature (e.g. -4)" required>
+                <input type="number" class="form-control" id="temperature" required>
             </div>
             <div class="form-group">
                 <label for="pressure">Pressure (MPa)</label>
-                <input type="number" class="form-control" id="pressure" step="0.01" min="0" max="10" placeholder="Enter pressure (e.g. 1)" required>
+                <input type="number" class="form-control" id="pressure" step="0.01" placeholder="Enter as decimal" required>
             </div>
             <div class="form-group">
                 <label for="water_pressure">Water Vapor Pressure (MPa)</label>
-                <input type="number" class="form-control" id="water_pressure" step="0.01" placeholder="Enter water vapor pressure (e.g. 0.05)" required>
+                <input type="number" class="form-control" id="water_pressure" step="0.01" placeholder="Enter as decimal" required>
             </div>
-
+            <div class="form-group">
+                <label>Optional Custom Critical Values (Decimal Format)</label>
+                <input type="number" class="form-control mb-2" id="custom_T_crit" placeholder="Custom Critical Temperature (°C)" step="0.01">
+                <input type="number" class="form-control mb-2" id="custom_P_crit" placeholder="Custom Critical Pressure (MPa)" step="0.01">
+                <input type="number" class="form-control mb-2" id="custom_P_w_crit" placeholder="Custom Critical Water Vapor Pressure (MPa)" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Adjust Weighting Coefficients</label>
+                <input type="number" class="form-control mb-2" id="alpha" placeholder="α (Default: 1)">
+                <input type="number" class="form-control mb-2" id="beta" placeholder="β (Default: 2)">
+                <input type="number" class="form-control mb-2" id="gamma" placeholder="γ (Default: 3)">
+            </div>
             <button type="submit" class="btn btn-primary">Calculate Risk</button>
         </form>
 
-        <div class="mt-5">
+        <div class="mt-4">
             <h2 id="result"></h2>
+            <h2 id="resultPercentage"></h2>
             <div id="suggestions"></div>
             <div id="formulas" class="mt-3"></div>
         </div>
