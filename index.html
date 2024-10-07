@@ -9,7 +9,11 @@
         const gasData = {
             "Methane": { T_crit: 0, P_crit: 1, P_w_crit: 0.05, C: 1.5, enthalpy: 2100 },
             "Ethane": { T_crit: -10, P_crit: 2, P_w_crit: 0.08, C: 1.7, enthalpy: 1800 },
-            "Propane": { T_crit: -15, P_crit: 2.5, P_w_crit: 0.1, C: 2, enthalpy: 1600 }
+            "Propane": { T_crit: -15, P_crit: 2.5, P_w_crit: 0.1, C: 2, enthalpy: 1600 },
+            "Butane": { T_crit: -20, P_crit: 3, P_w_crit: 0.09, C: 1.8, enthalpy: 1500 },
+            "Hydrogen Sulfide": { T_crit: 5, P_crit: 2.8, P_w_crit: 0.07, C: 2.1, enthalpy: 2000 },
+            "Carbon Dioxide": { T_crit: -30, P_crit: 3.5, P_w_crit: 0.06, C: 2.5, enthalpy: 1700 },
+            "Mixed Gas": { T_crit: -10, P_crit: 2, P_w_crit: 0.08, C: 2, enthalpy: 1750 }
         };
 
         function calculateRisk() {
@@ -58,7 +62,7 @@
                 ? `ln(P) = (${gasData[gas].enthalpy} / R) * (1 / T) + ${gasData[gas].C} + k * ${P_w}`
                 : "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
 
-            document.getElementById("formulas").innerHTML = `
+            document.getElementById("formulas").innerHTML = ` 
                 <h4>Hydrate Formation Risk Calculation:</h4>
                 <p>${riskFormula}</p>
                 <h4>Clausius-Clapeyron Equation with Water Content:</h4>
@@ -82,6 +86,10 @@
                     <option value="Methane">Methane</option>
                     <option value="Ethane">Ethane</option>
                     <option value="Propane">Propane</option>
+                    <option value="Butane">Butane</option>
+                    <option value="Hydrogen Sulfide">Hydrogen Sulfide</option>
+                    <option value="Carbon Dioxide">Carbon Dioxide</option>
+                    <option value="Mixed Gas">Mixed Gas</option>
                 </select>
             </div>
             <div class="form-group">
