@@ -96,10 +96,10 @@
     <input type="number" id="pressure" placeholder="e.g. 1000" step="any" min="0" />
 
     <label for="constantA">Constant A</label>
-    <input type="number" id="constantA" placeholder="e.g. 23.0" step="any" />
+    <input type="number" id="constantA" placeholder="e.g. 13.521" step="any" />
 
     <label for="constantB">Constant B</label>
-    <input type="number" id="constantB" placeholder="e.g. 2000" step="any" />
+    <input type="number" id="constantB" placeholder="e.g. 2716" step="any" />
 
     <button onclick="calculateRisk()">Calculate Risk</button>
 
@@ -123,26 +123,36 @@ function calculateRisk() {
     return;
   }
 
-  // Convert pressure from kPa to MPa
-  const P = P_kPa / 1000;
+  // Convert pressure from kPa to bar (1 bar = 100 kPa)
+  const P = P_kPa / 100;
 
-  // Calculate denominator: 10^(A - B/T) / 10
-  const denominator = Math.pow(10, (A - (B / T))) / 10;
+  // Calculate critical temperature for given pressure P
+  const log10P = Math.log10(P);
+  if (A - log10P === 0) {
+    alert("Division by zero in critical temperature calculation. Check input values.");
+    return;
+  }
+  const T_crit = B / (A - log10P);
 
-  // Calculate risk score R = (P / denominator) - 1
-  const R = (P / denominator) - 1;
+  // Calculate critical pressure for given temperature T
+  const P_crit = Math.pow(10, (A - (B / T)));
 
-  // Risk percentage always positive
-  const riskPercentage = Math.abs(R) * 100;
+  // Calculate risk score R = |T_crit - T| + |P - P_crit|
+  const R = Math.abs(T_crit - T) + Math.abs(P - P_crit);
 
+  // Format result message
   let message = `<strong>Gas Type:</strong> ${gas}<br>`;
+  message += `<strong>Critical Temperature (K):</strong> ${T_crit.toFixed(2)}<br>`;
+  message += `<strong>Critical Pressure (bar):</strong> ${P_crit.toFixed(2)}<br>`;
   message += `<strong>Risk Score (R):</strong> ${R.toFixed(4)}<br>`;
-  message += `<strong>Risk Percentage:</strong> ${riskPercentage.toFixed(2)}%<br>`;
 
-  if (R > 0) {
-    message += `<span style="color:red;font-weight:bold;">Warning: High risk of hydrate formation!</span>`;
+  // Simple interpretation threshold
+  if (R < 1) {
+    message += `<span style="color:green;font-weight:bold;">Low risk of hydrate formation.</span>`;
+  } else if (R < 5) {
+    message += `<span style="color:orange;font-weight:bold;">Moderate risk of hydrate formation.</span>`;
   } else {
-    message += `<span style="color:green;font-weight:bold;">No risk of hydrate formation detected.</span>`;
+    message += `<span style="color:red;font-weight:bold;">High risk of hydrate formation!</span>`;
   }
 
   document.getElementById("result").innerHTML = message;
