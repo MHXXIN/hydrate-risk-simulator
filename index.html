@@ -1,153 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Hydrate Risk Predictor</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #e3f2fd, #f1f8e9);
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 60px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-            color: #1e88e5;
-            margin-bottom: 30px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #cfd8dc;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        button {
-            width: 100%;
-            background-color: #1976d2;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0d47a1;
-        }
-
-        .result {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #e3f2fd;
-            border-radius: 10px;
-            color: #263238;
-        }
-
-        ul {
-            padding-left: 20px;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hydrate Risk Calculator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f4f8;
+    margin: 0; padding: 20px;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    color: #0275d8;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+    padding: 30px;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+  }
+  input[type="number"], select {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 5px;
+    border: 1.5px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  button {
+    margin-top: 25px;
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: #0275d8;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #025aa5;
+  }
+  .result {
+    margin-top: 25px;
+    background-color: #e7f1ff;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #014f86;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h2>Gas Hydrate Risk Predictor</h2>
 
-        <label for="gas_type">Select Gas Type:</label>
-        <select id="gas_type" onchange="setDefaults()">
-            <option value="">-- Select --</option>
-            <option value="Methane">Methane</option>
-            <option value="Ethane">Ethane</option>
-            <option value="Propane">Propane</option>
-        </select>
+<div class="container">
+  <h1>Hydrate Risk Calculator</h1>
+  
+  <label for="temperature">Temperature (Kelvin, K):</label>
+  <input type="number" id="temperature" placeholder="e.g. 280" min="200" max="400" step="any" />
 
-        <label for="temperature">Temperature (K):</label>
-        <input type="number" id="temperature" placeholder="Enter temperature in Kelvin">
+  <label for="pressure">Pressure (kPa):</label>
+  <input type="number" id="pressure" placeholder="e.g. 5000" min="1" step="any" />
 
-        <label for="pressure">Pressure (kPa):</label>
-        <input type="number" id="pressure" placeholder="Enter pressure in kPa">
+  <label for="gas_type">Select Gas Type:</label>
+  <select id="gas_type" onchange="updateConstants()">
+    <option value="None">-- Select Gas Type --</option>
+    <option value="Methane">Methane</option>
+    <option value="Ethane">Ethane</option>
+    <option value="Propane">Propane</option>
+    <option value="Custom">Custom A and B</option>
+  </select>
 
-        <label for="A">Constant A:</label>
-        <input type="number" id="A" placeholder="Enter constant A (auto-filled by gas type)">
+  <label for="constantA">Constant A:</label>
+  <input type="number" id="constantA" placeholder="Enter constant A" step="any" />
 
-        <label for="B">Constant B:</label>
-        <input type="number" id="B" placeholder="Enter constant B (auto-filled by gas type)">
+  <label for="constantB">Constant B:</label>
+  <input type="number" id="constantB" placeholder="Enter constant B" step="any" />
 
-        <button onclick="calculateRisk()">Calculate Risk</button>
+  <button onclick="calculateRisk()">Calculate Risk</button>
 
-        <div class="result" id="result" style="display:none;">
-            <div id="score"></div>
-            <div id="percentage"></div>
-            <div id="suggestions"></div>
-        </div>
-    </div>
+  <div id="result" class="result"></div>
+</div>
 
-    <script>
-        const gasConstants = {
-            Methane: { A: -1800, B: 10.5 },
-            Ethane: { A: -2200, B: 12.2 },
-            Propane: { A: -2500, B: 14.1 }
-        };
+<script>
+  // Predefined constants for gases (example values)
+  const gasConstants = {
+    Methane: { A: 3000, B: 8 },
+    Ethane: { A: 3500, B: 7.5 },
+    Propane: { A: 4000, B: 7 }
+  };
 
-        function setDefaults() {
-            const gas = document.getElementById("gas_type").value;
-            if (gasConstants[gas]) {
-                document.getElementById("A").value = gasConstants[gas].A;
-                document.getElementById("B").value = gasConstants[gas].B;
-            } else {
-                document.getElementById("A").value = "";
-                document.getElementById("B").value = "";
-            }
-        }
+  function updateConstants() {
+    const gas = document.getElementById("gas_type").value;
+    if (gas in gasConstants) {
+      document.getElementById("constantA").value = gasConstants[gas].A;
+      document.getElementById("constantB").value = gasConstants[gas].B;
+      document.getElementById("constantA").disabled = true;
+      document.getElementById("constantB").disabled = true;
+    } else if (gas === "Custom") {
+      document.getElementById("constantA").value = "";
+      document.getElementById("constantB").value = "";
+      document.getElementById("constantA").disabled = false;
+      document.getElementById("constantB").disabled = false;
+    } else {
+      document.getElementById("constantA").value = "";
+      document.getElementById("constantB").value = "";
+      document.getElementById("constantA").disabled = true;
+      document.getElementById("constantB").disabled = true;
+    }
+  }
 
-        function calculateRisk() {
-            const T = parseFloat(document.getElementById("temperature").value);
-            const P = parseFloat(document.getElementById("pressure").value);
-            const A = parseFloat(document.getElementById("A").value);
-            const B = parseFloat(document.getElementById("B").value);
+  function calculateRisk() {
+    const T = parseFloat(document.getElementById("temperature").value);
+    const P = parseFloat(document.getElementById("pressure").value);
+    const A = parseFloat(document.getElementById("constantA").value);
+    const B = parseFloat(document.getElementById("constantB").value);
 
-            if (isNaN(T) || isNaN(P) || isNaN(A) || isNaN(B)) {
-                alert("Please enter valid numerical values for all fields.");
-                return;
-            }
+    if (isNaN(T) || isNaN(P) || isNaN(A) || isNaN(B)) {
+      alert("Please enter valid numerical values for all fields.");
+      return;
+    }
 
-            const lnP = (A / T) + B;
-            const P_predicted = Math.exp(lnP);
-            const R = P - P_predicted;
-            const riskPercentage = (R / P) * 100;
+    if (T <= 0 || P <= 0) {
+      alert("Temperature and Pressure must be positive numbers.");
+      return;
+    }
 
-            document.getElementById("result").style.display = 'block';
-            document.getElementById("score").innerHTML = `<strong>Risk Score:</strong> ${R.toFixed(2)}`;
-            document.getElementById("percentage").innerHTML = `<strong>Risk Percentage:</strong> ${riskPercentage.toFixed(2)}%`;
+    // Calculate risk R = (P / e^(A/T - B)) - 1
+    const expTerm = Math.exp(A / T - B);
+    const R = (P / expTerm) - 1;
 
-            let suggestions = "";
-            if (R > 0) {
-                suggestions = "<ul><li>Hydrate formation likely.</li><li>Consider increasing temperature or reducing pressure.</li></ul>";
-            } else {
-                suggestions = "<ul><li>Hydrate formation is unlikely.</li></ul>";
-            }
-            document.getElementById("suggestions").innerHTML = `<strong>Suggestions:</strong> ${suggestions}`;
-        }
-    </script>
+    // Convert to percentage
+    const riskPercentage = R * 100;
+
+    // Display results
+    const resultDiv = document.getElementById("result");
+    let message = `Risk Score (R): ${R.toFixed(4)}<br/>Risk Percentage: ${riskPercentage.toFixed(2)}%<br/>`;
+
+    if (R > 0) {
+      message += "<strong>Warning:</strong> High risk of hydrate formation!";
+    } else {
+      message += "No risk of hydrate formation detected.";
+    }
+
+    resultDiv.innerHTML = message;
+  }
+
+  // Initialize form
+  updateConstants();
+</script>
+
 </body>
 </html>
