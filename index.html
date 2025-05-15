@@ -8,159 +8,148 @@
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f0f4f8;
-    margin: 0; padding: 20px;
+    padding: 20px;
     color: #333;
   }
   h1 {
     text-align: center;
-    color: #0275d8;
+    color: #004a99;
   }
-  .container {
-    max-width: 600px;
-    margin: auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
-    padding: 30px;
-  }
-  label {
-    display: block;
-    margin-top: 15px;
-    font-weight: 600;
-  }
-  input[type="number"], select {
+  table {
     width: 100%;
-    padding: 8px 10px;
-    margin-top: 5px;
-    border: 1.5px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+    max-width: 700px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  th {
+    background-color: #004a99;
+    color: white;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     box-sizing: border-box;
   }
-  button {
-    margin-top: 25px;
+  select {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    font-weight: bold;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  #calculateBtn {
+    display: block;
+    margin: 30px auto;
+    background-color: #0077cc;
     color: white;
-    background-color: #0275d8;
     border: none;
+    padding: 12px 30px;
+    font-size: 16px;
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  button:hover {
-    background-color: #025aa5;
+  #calculateBtn:hover {
+    background-color: #005fa3;
   }
-  .result {
-    margin-top: 25px;
-    background-color: #e7f1ff;
-    padding: 15px;
-    border-radius: 6px;
+  #result {
+    max-width: 700px;
+    margin: 20px auto;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
     font-size: 18px;
-    font-weight: 600;
-    color: #014f86;
+    color: #004a99;
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Hydrate Risk Calculator</h1>
-  
-  <label for="temperature">Temperature (Kelvin, K):</label>
-  <input type="number" id="temperature" placeholder="e.g. 280" min="200" max="400" step="any" />
+<h1>Hydrate Risk Formation Calculator</h1>
 
-  <label for="pressure">Pressure (kPa):</label>
-  <input type="number" id="pressure" placeholder="e.g. 5000" min="1" step="any" />
+<table>
+  <thead>
+    <tr>
+      <th>Gas Type</th>
+      <th>Temperature (K)</th>
+      <th>Pressure (kPa)</th>
+      <th>Constant A</th>
+      <th>Constant B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <select id="gas_type">
+          <option value="Methane">Methane</option>
+          <option value="Ethane">Ethane</option>
+          <option value="Propane">Propane</option>
+          <option value="CarbonDioxide">Carbon Dioxide</option>
+          <option value="Nitrogen">Nitrogen</option>
+        </select>
+      </td>
+      <td><input type="number" id="temperature" min="0" step="any" placeholder="e.g. 273" /></td>
+      <td><input type="number" id="pressure" min="0" step="any" placeholder="e.g. 1000" /></td>
+      <td><input type="number" id="constantA" step="any" placeholder="e.g. 10.0" /></td>
+      <td><input type="number" id="constantB" step="any" placeholder="e.g. 2000" /></td>
+    </tr>
+  </tbody>
+</table>
 
-  <label for="gas_type">Select Gas Type:</label>
-  <select id="gas_type" onchange="updateConstants()">
-    <option value="None">-- Select Gas Type --</option>
-    <option value="Methane">Methane</option>
-    <option value="Ethane">Ethane</option>
-    <option value="Propane">Propane</option>
-    <option value="Custom">Custom A and B</option>
-  </select>
+<button id="calculateBtn" onclick="calculateRisk()">Calculate Risk</button>
 
-  <label for="constantA">Constant A:</label>
-  <input type="number" id="constantA" placeholder="Enter constant A" step="any" />
-
-  <label for="constantB">Constant B:</label>
-  <input type="number" id="constantB" placeholder="Enter constant B" step="any" />
-
-  <button onclick="calculateRisk()">Calculate Risk</button>
-
-  <div id="result" class="result"></div>
-</div>
+<div id="result"></div>
 
 <script>
-  // Predefined constants for gases (example values)
-  const gasConstants = {
-    Methane: { A: 3000, B: 8 },
-    Ethane: { A: 3500, B: 7.5 },
-    Propane: { A: 4000, B: 7 }
-  };
+function calculateRisk() {
+  const T = parseFloat(document.getElementById("temperature").value);
+  const P_kPa = parseFloat(document.getElementById("pressure").value);
+  const A = parseFloat(document.getElementById("constantA").value);
+  const B = parseFloat(document.getElementById("constantB").value);
+  const gas = document.getElementById("gas_type").value;
 
-  function updateConstants() {
-    const gas = document.getElementById("gas_type").value;
-    if (gas in gasConstants) {
-      document.getElementById("constantA").value = gasConstants[gas].A;
-      document.getElementById("constantB").value = gasConstants[gas].B;
-      document.getElementById("constantA").disabled = true;
-      document.getElementById("constantB").disabled = true;
-    } else if (gas === "Custom") {
-      document.getElementById("constantA").value = "";
-      document.getElementById("constantB").value = "";
-      document.getElementById("constantA").disabled = false;
-      document.getElementById("constantB").disabled = false;
-    } else {
-      document.getElementById("constantA").value = "";
-      document.getElementById("constantB").value = "";
-      document.getElementById("constantA").disabled = true;
-      document.getElementById("constantB").disabled = true;
-    }
+  if (isNaN(T) || isNaN(P_kPa) || isNaN(A) || isNaN(B)) {
+    alert("Please enter valid numerical values for all fields.");
+    return;
+  }
+  if (T <= 0 || P_kPa <= 0) {
+    alert("Temperature and Pressure must be positive numbers.");
+    return;
   }
 
-  function calculateRisk() {
-    const T = parseFloat(document.getElementById("temperature").value);
-    const P = parseFloat(document.getElementById("pressure").value);
-    const A = parseFloat(document.getElementById("constantA").value);
-    const B = parseFloat(document.getElementById("constantB").value);
+  // Convert pressure from kPa to MPa
+  const P = P_kPa / 1000;
 
-    if (isNaN(T) || isNaN(P) || isNaN(A) || isNaN(B)) {
-      alert("Please enter valid numerical values for all fields.");
-      return;
-    }
+  // Calculate risk score R = (P / e^(A - B/T)) - 1
+  const expTerm = Math.exp(A - (B / T));
+  const R = (P / expTerm) - 1;
 
-    if (T <= 0 || P <= 0) {
-      alert("Temperature and Pressure must be positive numbers.");
-      return;
-    }
+  // Convert to percentage
+  const riskPercentage = R * 100;
 
-    // Calculate risk R = (P / e^(A/T - B)) - 1
-    const expTerm = Math.exp(A / T - B);
-    const R = (P / expTerm) - 1;
+  let message = `<strong>Gas Type:</strong> ${gas}<br>`;
+  message += `<strong>Risk Score (R):</strong> ${R.toFixed(4)}<br>`;
+  message += `<strong>Risk Percentage:</strong> ${riskPercentage.toFixed(2)}%<br>`;
 
-    // Convert to percentage
-    const riskPercentage = R * 100;
-
-    // Display results
-    const resultDiv = document.getElementById("result");
-    let message = `Risk Score (R): ${R.toFixed(4)}<br/>Risk Percentage: ${riskPercentage.toFixed(2)}%<br/>`;
-
-    if (R > 0) {
-      message += "<strong>Warning:</strong> High risk of hydrate formation!";
-    } else {
-      message += "No risk of hydrate formation detected.";
-    }
-
-    resultDiv.innerHTML = message;
+  if (R > 0) {
+    message += `<span style="color:red;font-weight:bold;">Warning: High risk of hydrate formation!</span>`;
+  } else {
+    message += `<span style="color:green;font-weight:bold;">No risk of hydrate formation detected.</span>`;
   }
 
-  // Initialize form
-  updateConstants();
+  document.getElementById("result").innerHTML = message;
+}
 </script>
 
 </body>
