@@ -1,106 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Hydrate Formation Risk Calculator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f7f7;
-      padding: 30px;
-    }
-    h2 {
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-    }
-    input {
-      padding: 8px;
-      width: 300px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #007acc;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .output {
-      margin-top: 25px;
-      padding: 15px;
-      background: white;
-      border: 1px solid #ccc;
-      max-width: 600px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Hydrate Risk Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f3f6f9;
+        }
+        h2 {
+            color: #333;
+        }
+        label, select, input {
+            display: block;
+            margin-bottom: 15px;
+        }
+        input, select {
+            padding: 6px;
+            width: 250px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #result, #resultPercentage, #suggestions {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-  <h2>Hydrate Formation Risk Calculator</h2>
+<h2>Gas Hydrate Risk Predictor</h2>
 
-  <label for="temperature">Temperature (K):</label>
-  <input type="number" id="temperature" step="any" placeholder="e.g., 273.15">
+<label for="gas_type">Select Gas Type:</label>
+<select id="gas_type">
+    <option value="Methane">Methane</option>
+    <option value="Ethane">Ethane</option>
+    <option value="Propane">Propane</option>
+</select>
 
-  <label for="pressure">Pressure (kPa):</label>
-  <input type="number" id="pressure" step="any" placeholder="e.g., 5000">
+<label for="temperature">Temperature (K):</label>
+<input type="number" id="temperature" placeholder="Enter temperature in Kelvin">
 
-  <label for="constantA">Constant A:</label>
-  <input type="number" id="constantA" step="any" placeholder="e.g., 1000">
+<label for="pressure">Pressure (kPa):</label>
+<input type="number" id="pressure" placeholder="Enter pressure in kPa">
 
-  <label for="constantB">Constant B:</label>
-  <input type="number" id="constantB" step="any" placeholder="e.g., 500">
+<label for="A">Constant A:</label>
+<input type="number" id="A" placeholder="Enter constant A">
 
-  <button onclick="calculateRisk()">Calculate Risk</button>
+<label for="B">Constant B:</label>
+<input type="number" id="B" placeholder="Enter constant B">
 
-  <div class="output" id="result"></div>
-  <div class="output" id="resultPercentage"></div>
-  <div class="output" id="suggestions"></div>
-  <div class="output" id="formulas"></div>
+<button onclick="calculateRisk()">Calculate Risk</button>
 
-  <script>
+<div id="result"></div>
+<div id="resultPercentage"></div>
+<div id="suggestions"></div>
+
+<script>
     function calculateRisk() {
-      const T = parseFloat(document.getElementById("temperature").value);
-      const P_kPa = parseFloat(document.getElementById("pressure").value);
-      const A = parseFloat(document.getElementById("constantA").value);
-      const B = parseFloat(document.getElementById("constantB").value);
+        const T = parseFloat(document.getElementById("temperature").value);
+        const P = parseFloat(document.getElementById("pressure").value);
+        const A = parseFloat(document.getElementById("A").value);
+        const B = parseFloat(document.getElementById("B").value);
+        const gas = document.getElementById("gas_type").value;
 
-      if (isNaN(T) || isNaN(P_kPa) || isNaN(A) || isNaN(B) || T <= 0) {
-        alert("Please enter valid numerical values. Temperature must be greater than 0 K.");
-        return;
-      }
+        if (isNaN(T) || isNaN(P) || isNaN(A) || isNaN(B)) {
+            alert("Please enter valid numerical values for all fields.");
+            return;
+        }
 
-      // Equation: R = (P / e^((A - B) / T)) - 1
-      const exponent = (A - B) / T;
-      const denominator = Math.exp(exponent);
-      const R = (P_kPa / denominator) - 1;
+        const lnP = (A / T) + B;
+        const P_predicted = Math.exp(lnP);
+        const R = P - P_predicted;
+        const riskPercentage = (R / P) * 100;
 
-      document.getElementById("result").innerHTML = 
-        `<strong>Risk of Hydrate Formation Score:</strong> ${R.toFixed(4)}`;
-      document.getElementById("resultPercentage").innerHTML = 
-        `<strong>Risk of Hydrate Formation Percentage:</strong> ${(R * 100).toFixed(2)}%`;
+        document.getElementById("result").innerHTML = `Risk of Hydrate Formation Score: ${R.toFixed(2)}`;
+        document.getElementById("resultPercentage").innerHTML = `Risk of Hydrate Formation Percentage: ${riskPercentage.toFixed(2)}%`;
 
-      let suggestion = "";
-      if (R > 0) {
-        suggestion = "⚠️ Risk of hydrate formation detected. Consider increasing temperature or decreasing pressure.";
-      } else {
-        suggestion = "✅ No significant hydrate formation risk.";
-      }
-      document.getElementById("suggestions").innerHTML = `<strong>Suggestion:</strong> ${suggestion}`;
-
-      document.getElementById("formulas").innerHTML = `
-        <strong>Equation Used:</strong><br>
-        R = (P / e<sup>(A - B) / T</sup>) - 1<br>
-        where:<br>
-        - T = Temperature (K)<br>
-        - P = Pressure (kPa)<br>
-        - A, B = User-defined constants
-      `;
+        let suggestions = "<strong>Suggestions:</strong><ul>";
+        if (R > 0) {
+            suggestions += `<li>Hydrate formation likely. Try increasing temperature or decreasing pressure.</li>`;
+        } else {
+            suggestions += `<li>Hydrate formation is unlikely under current conditions.</li>`;
+        }
+        suggestions += "</ul>";
+        document.getElementById("suggestions").innerHTML = suggestions;
     }
-  </script>
+</script>
 
 </body>
 </html>
