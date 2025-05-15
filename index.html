@@ -68,10 +68,9 @@
     padding: 15px;
     background: #e9f1fb;
     border-radius: 7px;
-    font-size: 1.1rem;
-  }
-  #result strong {
-    color: #004a99;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
   }
 </style>
 </head>
@@ -112,7 +111,6 @@ function calculateRisk() {
   const P_kPa = parseFloat(document.getElementById("pressure").value);
   const A = parseFloat(document.getElementById("constantA").value);
   const B = parseFloat(document.getElementById("constantB").value);
-  const gas = document.getElementById("gas_type").value;
 
   if (isNaN(T) || isNaN(P_kPa) || isNaN(A) || isNaN(B)) {
     alert("Please enter valid numerical values for all fields.");
@@ -140,20 +138,18 @@ function calculateRisk() {
   // Calculate risk score R = |T_crit - T| + |P - P_crit|
   const R = Math.abs(T_crit - T) + Math.abs(P - P_crit);
 
-  // Format result message
-  let message = `<strong>Gas Type:</strong> ${gas}<br>`;
-  message += `<strong>Critical Temperature (K):</strong> ${T_crit.toFixed(2)}<br>`;
-  message += `<strong>Critical Pressure (bar):</strong> ${P_crit.toFixed(2)}<br>`;
-  message += `<strong>Risk Score (R):</strong> ${R.toFixed(4)}<br>`;
+  // Risk percentage (scaled arbitrarily for display)
+  const riskPercentage = Math.min((R / 10) * 100, 100);
 
-  // Simple interpretation threshold
-  if (R < 1) {
-    message += `<span style="color:green;font-weight:bold;">Low risk of hydrate formation.</span>`;
-  } else if (R < 5) {
-    message += `<span style="color:orange;font-weight:bold;">Moderate risk of hydrate formation.</span>`;
-  } else {
-    message += `<span style="color:red;font-weight:bold;">High risk of hydrate formation!</span>`;
-  }
+  // Risk level
+  const riskLevel = R > 1 ? "High risk of hydrate formation!" : "Low risk of hydrate formation.";
+
+  // Display only the required info
+  const message = `
+    Risk Score: ${R.toFixed(4)}<br>
+    Risk Percentage: ${riskPercentage.toFixed(2)}%<br>
+    <span style="color: ${R > 1 ? 'red' : 'green'}; font-weight: bold;">${riskLevel}</span>
+  `;
 
   document.getElementById("result").innerHTML = message;
 }
