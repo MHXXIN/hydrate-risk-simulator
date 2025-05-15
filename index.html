@@ -7,109 +7,104 @@
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8;
-    padding: 20px;
+    background: #f4f7f9;
     color: #333;
+    margin: 0; padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .container {
+    background: white;
+    margin: 40px;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
   }
   h1 {
     text-align: center;
+    margin-bottom: 25px;
     color: #004a99;
   }
-  table {
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+  }
+  select, input[type="number"] {
     width: 100%;
-    max-width: 700px;
-    margin: 20px auto;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
-    border-radius: 8px;
-    overflow: hidden;
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-radius: 5px;
+    border: 1.5px solid #ccc;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
   }
-  th, td {
-    padding: 12px 15px;
-    text-align: center;
-    border-bottom: 1px solid #eee;
+  select:focus, input[type="number"]:focus {
+    border-color: #004a99;
+    outline: none;
   }
-  th {
+  button {
+    margin-top: 25px;
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
     background-color: #004a99;
     color: white;
-  }
-  input[type="number"] {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
-  select {
-    width: 100%;
-    padding: 6px 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  #calculateBtn {
-    display: block;
-    margin: 30px auto;
-    background-color: #0077cc;
-    color: white;
     border: none;
-    padding: 12px 30px;
-    font-size: 16px;
-    border-radius: 6px;
+    border-radius: 7px;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  #calculateBtn:hover {
-    background-color: #005fa3;
+  button:hover {
+    background-color: #003366;
   }
   #result {
-    max-width: 700px;
-    margin: 20px auto;
-    background: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
-    font-size: 18px;
+    margin-top: 25px;
+    padding: 15px;
+    background: #e9f1fb;
+    border-radius: 7px;
+    font-size: 1.1rem;
+  }
+  #result strong {
     color: #004a99;
   }
 </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Hydrate Risk Calculator</h1>
 
-<h1>Hydrate Risk Formation Calculator</h1>
+    <label for="gas_type">Gas Type</label>
+    <select id="gas_type">
+      <option value="Natural Gas">Natural Gas</option>
+      <option value="Methane">Methane</option>
+      <option value="Ethane">Ethane</option>
+      <option value="Propane">Propane</option>
+      <option value="Butane">Butane</option>
+      <option value="Other">Other</option>
+    </select>
 
-<table>
-  <thead>
-    <tr>
-      <th>Gas Type</th>
-      <th>Temperature (K)</th>
-      <th>Pressure (kPa)</th>
-      <th>Constant A</th>
-      <th>Constant B</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <select id="gas_type">
-          <option value="Methane">Methane</option>
-          <option value="Ethane">Ethane</option>
-          <option value="Propane">Propane</option>
-          <option value="CarbonDioxide">Carbon Dioxide</option>
-          <option value="Nitrogen">Nitrogen</option>
-        </select>
-      </td>
-      <td><input type="number" id="temperature" min="0" step="any" placeholder="e.g. 273" /></td>
-      <td><input type="number" id="pressure" min="0" step="any" placeholder="e.g. 1000" /></td>
-      <td><input type="number" id="constantA" step="any" placeholder="Enter A" /></td>
-      <td><input type="number" id="constantB" step="any" placeholder="Enter B" /></td>
-    </tr>
-  </tbody>
-</table>
+    <label for="temperature">Temperature (Kelvin, K)</label>
+    <input type="number" id="temperature" placeholder="e.g. 273.15" step="any" min="0" />
 
-<button id="calculateBtn" onclick="calculateRisk()">Calculate Risk</button>
+    <label for="pressure">Pressure (kPa)</label>
+    <input type="number" id="pressure" placeholder="e.g. 1000" step="any" min="0" />
 
-<div id="result"></div>
+    <label for="constantA">Constant A</label>
+    <input type="number" id="constantA" placeholder="e.g. 23.0" step="any" />
+
+    <label for="constantB">Constant B</label>
+    <input type="number" id="constantB" placeholder="e.g. 2000" step="any" />
+
+    <button onclick="calculateRisk()">Calculate Risk</button>
+
+    <div id="result"></div>
+  </div>
 
 <script>
 function calculateRisk() {
@@ -135,8 +130,8 @@ function calculateRisk() {
   const expTerm = Math.exp(A - (B / T));
   const R = (P / expTerm) - 1;
 
-  // Convert to percentage
-  const riskPercentage = R * 100;
+  // Risk percentage always positive
+  const riskPercentage = Math.abs(R) * 100;
 
   let message = `<strong>Gas Type:</strong> ${gas}<br>`;
   message += `<strong>Risk Score (R):</strong> ${R.toFixed(4)}<br>`;
@@ -151,6 +146,5 @@ function calculateRisk() {
   document.getElementById("result").innerHTML = message;
 }
 </script>
-
 </body>
 </html>
