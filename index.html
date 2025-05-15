@@ -126,9 +126,11 @@ function calculateRisk() {
   // Convert pressure from kPa to MPa
   const P = P_kPa / 1000;
 
-  // Calculate risk score R = (P / e^(A - B/T)) - 1
-  const expTerm = Math.exp(A - (B / T));
-  const R = (P / expTerm) - 1;
+  // Calculate denominator: 10^(A - B/T) / 10
+  const denominator = Math.pow(10, (A - (B / T))) / 10;
+
+  // Calculate risk score R = (P / denominator) - 1
+  const R = (P / denominator) - 1;
 
   // Risk percentage always positive
   const riskPercentage = Math.abs(R) * 100;
