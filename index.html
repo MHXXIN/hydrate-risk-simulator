@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -53,82 +52,79 @@
             "Mixed Gas": { T_crit: -10, P_crit: 2, P_w_crit: 0.08, C: 2, enthalpy: 1750 }
         };
 
-```
-    function calculateRisk() {
-        // Get user inputs
-        const T = parseFloat(document.getElementById("temperature").value);
-        const P = parseFloat(document.getElementById("pressure").value);
-        const P_w = parseFloat(document.getElementById("water_pressure").value);
-        const gas = getGas();
+        function calculateRisk() {
+            // Get user inputs
+            const T = parseFloat(document.getElementById("temperature").value);
+            const P = parseFloat(document.getElementById("pressure").value);
+            const P_w = parseFloat(document.getElementById("water_pressure").value);
+            const gas = getGas();
 
-        // Determine critical values, using custom inputs if provided
-        const customT_crit = parseFloat(document.getElementById("custom_T_crit").value) || null;
-        const customP_crit = parseFloat(document.getElementById("custom_P_crit").value) || null;
-        const customPw_crit = parseFloat(document.getElementById("custom_P_w_crit").value) || null;
+            // Determine critical values, using custom inputs if provided
+            const customT_crit = parseFloat(document.getElementById("custom_T_crit").value) || null;
+            const customP_crit = parseFloat(document.getElementById("custom_P_crit").value) || null;
+            const customPw_crit = parseFloat(document.getElementById("custom_P_w_crit").value) || null;
 
-        const T_crit = customT_crit !== null ? customT_crit : (gas !== "None" ? gasData[gas].T_crit : 0);
-        const P_crit = customP_crit !== null ? customP_crit : (gas !== "None" ? gasData[gas].P_crit : 1);
-        const P_w_crit = customPw_crit !== null ? customPw_crit : (gas !== "None" ? gasData[gas].P_w_crit : 0.05);
+            const T_crit = customT_crit !== null ? customT_crit : (gas !== "None" ? gasData[gas].T_crit : 0);
+            const P_crit = customP_crit !== null ? customP_crit : (gas !== "None" ? gasData[gas].P_crit : 1);
+            const P_w_crit = customPw_crit !== null ? customPw_crit : (gas !== "None" ? gasData[gas].P_w_crit : 0.05);
 
-        // Weighting coefficients, with defaults if left blank
-        const alpha = parseFloat(document.getElementById("alpha").value) || 1;
-        const beta = parseFloat(document.getElementById("beta").value) || 2;
-        const gamma = parseFloat(document.getElementById("gamma").value) || 3;
+            // Weighting coefficients, with defaults if left blank
+            const alpha = parseFloat(document.getElementById("alpha").value) || 1;
+            const beta = parseFloat(document.getElementById("beta").value) || 2;
+            const gamma = parseFloat(document.getElementById("gamma").value) || 3;
 
-        // Validate inputs
-        if (isNaN(T) || isNaN(P) || isNaN(P_w)) {
-            alert("Please enter valid numerical values for Temperature, Pressure, and Water Vapor Pressure.");
-            return;
+            // Validate inputs
+            if (isNaN(T) || isNaN(P) || isNaN(P_w)) {
+                alert("Please enter valid numerical values for Temperature, Pressure, and Water Vapor Pressure.");
+                return;
+            }
+
+            // Risk Calculation Formula
+            const R = alpha * Math.pow(Math.abs(T_crit - T), 1.1) + beta * Math.pow(Math.abs(P - P_crit), 1.2) + gamma * Math.pow(Math.abs(P_w - P_w_crit), 1.3);
+
+            // Normalize R to be in the range of 1 to 100 for percentage display
+            const riskPercentage = Math.min(100, Math.max(1, (R / (R + 20)) * 100)); // Scaling factor applied here
+
+            // Display Risk Score and Percentage
+            document.getElementById("result").innerHTML = `Risk of Hydrate Formation Score: ${R.toFixed(2)}`;
+            document.getElementById("resultPercentage").innerHTML = `Risk of Hydrate Formation Percentage: ${riskPercentage.toFixed(2)}%`;
+
+            // Suggestions for risk reduction
+            let suggestions = "";
+            if (R > 0) {
+                suggestions += "<strong>Suggestions:</strong><ul>";
+                if (T < T_crit) suggestions += `<li>Increase temperature to at least ${T_crit}°C.</li>`;
+                if (P > P_crit) suggestions += `<li>Reduce pressure to ${P_crit} MPa or lower.</li>`;
+                if (P_w > P_w_crit) suggestions += `<li>Reduce water vapor pressure to ${P_w_crit} MPa.</li>`;
+                suggestions += "</ul>";
+            } else {
+                suggestions = "No hydrate formation risk.";
+            }
+            document.getElementById("suggestions").innerHTML = suggestions;
+
+            // Display formulas
+            displayFormulas(T, P, P_w);
         }
 
-        // Risk Calculation Formula
-        const R = alpha * Math.pow(Math.abs(T_crit - T), 1.1) + beta * Math.pow(Math.abs(P - P_crit), 1.2) + gamma * Math.pow(Math.abs(P_w - P_w_crit), 1.3);
+        function displayFormulas(T, P, P_w) {
+            const riskFormula = "R = α * |T_crit - T|^1.1 + β * |P - P_crit|^1.2 + γ * |P_w - P_w_crit|^1.3";
+            const gas = getGas();
+            const clapeyronFormula = gas !== "None" 
+                ? `ln(P) = (${gasData[gas].enthalpy} / R) * (1 / T) + ${gasData[gas].C} + k * ${P_w}`
+                : "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
 
-        // Normalize R to be in the range of 1 to 100 for percentage display
-        const riskPercentage = Math.min(100, Math.max(1, (R / (R + 20)) * 100)); // Scaling factor applied here
-
-        // Display Risk Score and Percentage
-        document.getElementById("result").innerHTML = `Risk of Hydrate Formation Score: ${R.toFixed(2)}`;
-        document.getElementById("resultPercentage").innerHTML = `Risk of Hydrate Formation Percentage: ${riskPercentage.toFixed(2)}%`;
-
-        // Suggestions for risk reduction
-        let suggestions = "";
-        if (R > 0) {
-            suggestions += "<strong>Suggestions:</strong><ul>";
-            if (T < T_crit) suggestions += `<li>Increase temperature to at least ${T_crit}°C.</li>`;
-            if (P > P_crit) suggestions += `<li>Reduce pressure to ${P_crit} MPa or lower.</li>`;
-            if (P_w > P_w_crit) suggestions += `<li>Reduce water vapor pressure to ${P_w_crit} MPa.</li>`;
-            suggestions += "</ul>";
-        } else {
-            suggestions = "No hydrate formation risk.";
+            document.getElementById("formulas").innerHTML = ` 
+                <h4>Hydrate Formation Risk Calculation:</h4>
+                <p>${riskFormula}</p>
+                <h4>Clausius-Clapeyron Equation with Water Content:</h4>
+                <p>${clapeyronFormula}</p>
+            `;
         }
-        document.getElementById("suggestions").innerHTML = suggestions;
 
-        // Display formulas
-        displayFormulas(T, P, P_w);
-    }
-
-    function displayFormulas(T, P, P_w) {
-        const riskFormula = "R = α * |T_crit - T|^1.1 + β * |P - P_crit|^1.2 + γ * |P_w - P_w_crit|^1.3";
-        const gas = getGas();
-        const clapeyronFormula = gas !== "None" 
-            ? `ln(P) = (${gasData[gas].enthalpy} / R) * (1 / T) + ${gasData[gas].C} + k * ${P_w}`
-            : "ln(P) = (ΔH / R) * (1 / T) + C + k * P_w";
-
-        document.getElementById("formulas").innerHTML = ` 
-            <h4>Hydrate Formation Risk Calculation:</h4>
-            <p>${riskFormula}</p>
-            <h4>Clausius-Clapeyron Equation with Water Content:</h4>
-            <p>${clapeyronFormula}</p>
-        `;
-    }
-
-    function getGas() {
-        return document.getElementById("gas_type").value;
-    }
-</script>
-```
-
+        function getGas() {
+            return document.getElementById("gas_type").value;
+        }
+    </script>
 </head>
 <body>
     <div class="container my-5">
