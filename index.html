@@ -71,6 +71,7 @@
     font-size: 1.2rem;
     font-weight: 700;
     text-align: center;
+    color: #004a99;
   }
 </style>
 </head>
@@ -141,14 +142,10 @@ function calculateRisk() {
   // Risk percentage (scaled arbitrarily for display)
   const riskPercentage = Math.min((R / 10) * 100, 100);
 
-  // Risk level
-  const riskLevel = R > 1 ? "High risk of hydrate formation!" : "Low risk of hydrate formation.";
-
-  // Display only the required info
+  // Display only risk score and risk percentage
   const message = `
     Risk Score: ${R.toFixed(4)}<br>
-    Risk Percentage: ${riskPercentage.toFixed(2)}%<br>
-    <span style="color: ${R > 1 ? 'red' : 'green'}; font-weight: bold;">${riskLevel}</span>
+    Risk Percentage: ${riskPercentage.toFixed(2)}%
   `;
 
   document.getElementById("result").innerHTML = message;
