@@ -1,113 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Hydrate Formation Risk Calculator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            background-color: #f2f2f2;
-        }
-        h2 {
-            color: #333;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input {
-            padding: 8px;
-            width: 300px;
-            margin-top: 5px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #0077cc;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #result, #resultPercentage, #suggestions, #formulas {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #ffffff;
-            border: 1px solid #ccc;
-            width: fit-content;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Hydrate Formation Risk Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 30px;
+    }
+    h2 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input {
+      padding: 8px;
+      width: 300px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 25px;
+      padding: 15px;
+      background: white;
+      border: 1px solid #ccc;
+      max-width: 600px;
+    }
+  </style>
 </head>
 <body>
 
-    <h2>Hydrate Formation Risk Calculator</h2>
+  <h2>Hydrate Formation Risk Calculator</h2>
 
-    <label for="temperature">Temperature (K):</label>
-    <input type="number" id="temperature" placeholder="Enter temperature in Kelvin">
+  <label for="temperature">Temperature (K):</label>
+  <input type="number" id="temperature" step="any" placeholder="e.g., 273.15">
 
-    <label for="pressure">Pressure (kPa):</label>
-    <input type="number" id="pressure" placeholder="Enter pressure in kPa">
+  <label for="pressure">Pressure (kPa):</label>
+  <input type="number" id="pressure" step="any" placeholder="e.g., 5000">
 
-    <label for="constantA">Constant A:</label>
-    <input type="number" id="constantA" placeholder="Enter constant A">
+  <label for="constantA">Constant A:</label>
+  <input type="number" id="constantA" step="any" placeholder="e.g., 1000">
 
-    <label for="constantB">Constant B:</label>
-    <input type="number" id="constantB" placeholder="Enter constant B">
+  <label for="constantB">Constant B:</label>
+  <input type="number" id="constantB" step="any" placeholder="e.g., 500">
 
-    <button onclick="calculateRisk()">Calculate Risk</button>
+  <button onclick="calculateRisk()">Calculate Risk</button>
 
-    <div id="result"></div>
-    <div id="resultPercentage"></div>
-    <div id="suggestions"></div>
-    <div id="formulas"></div>
+  <div class="output" id="result"></div>
+  <div class="output" id="resultPercentage"></div>
+  <div class="output" id="suggestions"></div>
+  <div class="output" id="formulas"></div>
 
-    <script>
-        function calculateRisk() {
-            // Get user inputs
-            const T = parseFloat(document.getElementById("temperature").value); // Kelvin
-            const P_kPa = parseFloat(document.getElementById("pressure").value); // kPa
-            const A = parseFloat(document.getElementById("constantA").value);
-            const B = parseFloat(document.getElementById("constantB").value);
+  <script>
+    function calculateRisk() {
+      const T = parseFloat(document.getElementById("temperature").value);
+      const P_kPa = parseFloat(document.getElementById("pressure").value);
+      const A = parseFloat(document.getElementById("constantA").value);
+      const B = parseFloat(document.getElementById("constantB").value);
 
-            // Validate inputs
-            if (isNaN(T) || isNaN(P_kPa) || isNaN(A) || isNaN(B)) {
-                alert("Please enter valid numerical values for all fields.");
-                return;
-            }
+      if (isNaN(T) || isNaN(P_kPa) || isNaN(A) || isNaN(B) || T <= 0) {
+        alert("Please enter valid numerical values. Temperature must be greater than 0 K.");
+        return;
+      }
 
-            // Convert pressure from kPa to MPa
-            const P = P_kPa / 1000;
+      // Equation: R = (P / e^((A - B) / T)) - 1
+      const exponent = (A - B) / T;
+      const denominator = Math.exp(exponent);
+      const R = (P_kPa / denominator) - 1;
 
-            // Final equation: R = (P / e^((A - B) / T)) - 1
-            const denominator = Math.exp((A - B) / T);
-            const R = (P / denominator) - 1;
+      document.getElementById("result").innerHTML = 
+        `<strong>Risk of Hydrate Formation Score:</strong> ${R.toFixed(4)}`;
+      document.getElementById("resultPercentage").innerHTML = 
+        `<strong>Risk of Hydrate Formation Percentage:</strong> ${(R * 100).toFixed(2)}%`;
 
-            // Display results
-            document.getElementById("result").innerHTML = 
-                `Risk of Hydrate Formation Score: ${R.toFixed(4)}`;
-            document.getElementById("resultPercentage").innerHTML = 
-                `Risk of Hydrate Formation Percentage: ${(R * 100).toFixed(2)}%`;
+      let suggestion = "";
+      if (R > 0) {
+        suggestion = "⚠️ Risk of hydrate formation detected. Consider increasing temperature or decreasing pressure.";
+      } else {
+        suggestion = "✅ No significant hydrate formation risk.";
+      }
+      document.getElementById("suggestions").innerHTML = `<strong>Suggestion:</strong> ${suggestion}`;
 
-            let suggestions = "";
-            if (R > 0) {
-                suggestions = `<strong>Suggestion:</strong> There is a potential risk of hydrate formation. Consider increasing the temperature or decreasing the pressure.`;
-            } else {
-                suggestions = "No hydrate formation risk under current conditions.";
-            }
-            document.getElementById("suggestions").innerHTML = suggestions;
-
-            displayFormulas();
-        }
-
-        function displayFormulas() {
-            const formula = "R = (P / e<sup>(A - B) / T</sup>) - 1";
-            document.getElementById("formulas").innerHTML = `
-                <h4>Hydrate Formation Risk Equation:</h4>
-                <p>${formula}</p>
-                <p><strong>Note:</strong> T in Kelvin (K), P in kilopascal (kPa), R is unitless.</p>
-            `;
-        }
-    </script>
+      document.getElementById("formulas").innerHTML = `
+        <strong>Equation Used:</strong><br>
+        R = (P / e<sup>(A - B) / T</sup>) - 1<br>
+        where:<br>
+        - T = Temperature (K)<br>
+        - P = Pressure (kPa)<br>
+        - A, B = User-defined constants
+      `;
+    }
+  </script>
 
 </body>
 </html>
