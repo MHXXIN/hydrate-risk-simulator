@@ -4,81 +4,118 @@
   <meta charset="UTF-8" />
   <title>Hydrate Risk Score Calculator</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4a00e0, #8e2de2);
       padding: 40px 20px;
       max-width: 600px;
       margin: auto;
-      color: #222;
+      color: #f0f0f5;
       box-sizing: border-box;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     h1 {
       text-align: center;
-      color: #0d47a1;
+      color: #fff;
       margin-bottom: 30px;
-      text-shadow: 1px 1px 2px #a3c2f7;
+      text-shadow: 0 0 10px #cda3ff;
+      font-weight: 700;
+      font-size: 2.5rem;
     }
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
     label {
       font-weight: 600;
       display: block;
       margin-bottom: 8px;
-      font-size: 15px;
-      color: #0d47a1;
+      font-size: 16px;
+      color: #e0d7ff;
     }
     input, select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px 14px;
       font-size: 16px;
-      border: 2px solid #90caf9;
-      border-radius: 6px;
-      transition: border-color 0.3s ease;
+      border: none;
+      border-radius: 10px;
+      box-shadow: inset 0 0 8px rgba(255 255 255 / 0.2);
+      background-color: rgba(255 255 255 / 0.15);
+      color: #f0f0f5;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
       box-sizing: border-box;
     }
+    input::placeholder {
+      color: #d6caffcc;
+      font-style: italic;
+    }
     input:focus, select:focus {
-      border-color: #0d47a1;
       outline: none;
-      box-shadow: 0 0 8px rgba(13, 71, 161, 0.3);
+      background-color: rgba(255 255 255 / 0.35);
+      box-shadow: 0 0 15px #cda3ff;
+      color: #fff;
     }
     select {
       cursor: pointer;
-      background-color: #fff;
     }
     button {
       width: 100%;
-      padding: 12px;
-      background-color: #0d47a1;
-      color: white;
+      padding: 14px;
+      background: linear-gradient(90deg, #8e2de2, #4a00e0);
+      color: #fff;
       border: none;
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
-      border-radius: 7px;
+      border-radius: 12px;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.4);
-      transition: background-color 0.3s ease;
+      box-shadow: 0 5px 15px rgba(142, 45, 226, 0.7);
+      transition: background 0.4s ease;
     }
     button:hover {
-      background-color: #08306b;
+      background: linear-gradient(90deg, #b468ff, #8252cc);
+      box-shadow: 0 8px 20px rgba(180, 104, 255, 0.8);
     }
     .result {
-      margin-top: 30px;
-      background: #e8f0fe;
-      padding: 20px 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(13, 71, 161, 0.15);
+      margin-top: 35px;
+      background: rgba(255 255 255 / 0.15);
+      padding: 25px 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(255 255 255 / 0.25);
+      font-size: 20px;
+      color: #f0e6ff;
+      line-height: 1.6;
+      user-select: text;
+    }
+    .equation {
+      margin-top: 20px;
       font-size: 18px;
-      color: #0d47a1;
+      font-style: italic;
+      color: #d6bfff;
+      text-align: center;
+      user-select: none;
+      letter-spacing: 0.05em;
     }
     .note {
+      margin-top: 10px;
       font-size: 14px;
-      color: #555;
-      margin-top: -15px;
-      margin-bottom: 25px;
+      color: #c9baffcc;
       font-style: italic;
       user-select: none;
+    }
+    .suggestions {
+      margin-top: 40px;
+      background: rgba(255 255 255 / 0.12);
+      border-left: 6px solid #b468ff;
+      padding: 20px 25px;
+      border-radius: 12px;
+      font-size: 15px;
+      color: #d1c4ff;
+      line-height: 1.5;
+      user-select: none;
+      box-shadow: 0 0 15px rgba(180, 104, 255, 0.3);
     }
   </style>
 </head>
@@ -123,6 +160,18 @@
   <div class="result" id="output" style="display:none;">
     <p id="riskScore"></p>
     <p id="riskPercent"></p>
+    <p class="equation">Final Equation: <br><strong>R = (P / P<sub>crit</sub>) × (T<sub>crit</sub> / T) − 1</strong></p>
+  </div>
+
+  <div class="suggestions">
+    <strong>Suggestions:</strong>
+    <ul>
+      <li>Ensure temperature (T) and pressure (P) are in Kelvin and MPa respectively.</li>
+      <li>Choose a gas type to auto-fill critical values or enter them manually.</li>
+      <li>Hydrate risk percentage indicates how far conditions are from critical hydrate formation.</li>
+      <li>A negative risk score suggests conditions are below hydrate formation threshold.</li>
+      <li>Use this calculator for preliminary risk estimation only.</li>
+    </ul>
   </div>
 
   <script>
@@ -156,7 +205,7 @@
 
       if (
         isNaN(T) || isNaN(P) || isNaN(Tcrit) || isNaN(Pcrit) ||
-        T === 0 || P === 0 || Tcrit === 0 || Pcrit === 0
+        T <= 0 || P <= 0 || Tcrit <= 0 || Pcrit <= 0
       ) {
         alert("Please enter all valid numerical values greater than zero.");
         return;
