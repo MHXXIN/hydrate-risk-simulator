@@ -132,7 +132,7 @@
       <option value="propane">Propane</option>
       <option value="custom">Custom</option>
     </select>
-    <div class="note">Select a gas type to auto-fill critical values or choose Custom to enter manually.</div>
+    <div class="note">Gas type selection does NOT auto-fill critical values. Please enter them manually.</div>
   </div>
 
   <div class="form-group">
@@ -147,12 +147,12 @@
 
   <div class="form-group">
     <label for="Tcrit">Critical Temperature (K)</label>
-    <input type="number" id="Tcrit" step="0.01" placeholder="Auto-filled or enter value" min="0" />
+    <input type="number" id="Tcrit" step="0.01" placeholder="Enter critical temperature" min="0" />
   </div>
 
   <div class="form-group">
     <label for="Pcrit">Critical Pressure (MPa)</label>
-    <input type="number" id="Pcrit" step="0.01" placeholder="Auto-filled or enter value" min="0" />
+    <input type="number" id="Pcrit" step="0.01" placeholder="Enter critical pressure" min="0" />
   </div>
 
   <button onclick="calculateRisk()">Calculate Risk</button>
@@ -166,34 +166,21 @@
   <div class="suggestions">
     <strong>Suggestions:</strong>
     <ul>
-      <li>Ensure temperature (T) and pressure (P) are in Kelvin and MPa respectively.</li>
-      <li>Choose a gas type to auto-fill critical values or enter them manually.</li>
-      <li>Hydrate risk percentage indicates how far conditions are from critical hydrate formation.</li>
-      <li>A negative risk score suggests conditions are below hydrate formation threshold.</li>
-      <li>Use this calculator for preliminary risk estimation only.</li>
+      <li>Make sure all values are entered and in correct units (Temperature in Kelvin, Pressure in MPa).</li>
+      <li>The gas type is just for reference and does not fill critical values automatically.</li>
+      <li>Hydrate risk percentage shows how close conditions are to hydrate formation.</li>
+      <li>A negative risk score means conditions are below the hydrate formation threshold.</li>
+      <li>Use this calculator as a preliminary tool for risk assessment.</li>
     </ul>
   </div>
 
   <script>
-    const gasData = {
-      methane: { Tcrit: 280.9, Pcrit: 5.847 },
-      ethane: { Tcrit: 289.0, Pcrit: 4.884 },
-      propane: { Tcrit: 289.6, Pcrit: 2.456 }
-    };
-
     function setCriticalValues() {
-      const gas = document.getElementById("gasType").value;
-      if (gas in gasData) {
-        document.getElementById("Tcrit").value = gasData[gas].Tcrit;
-        document.getElementById("Pcrit").value = gasData[gas].Pcrit;
-        document.getElementById("Tcrit").disabled = true;
-        document.getElementById("Pcrit").disabled = true;
-      } else {
-        document.getElementById("Tcrit").value = "";
-        document.getElementById("Pcrit").value = "";
-        document.getElementById("Tcrit").disabled = false;
-        document.getElementById("Pcrit").disabled = false;
-      }
+      // Clear critical inputs on gas selection for manual input by user
+      document.getElementById("Tcrit").value = "";
+      document.getElementById("Pcrit").value = "";
+      document.getElementById("Tcrit").disabled = false;
+      document.getElementById("Pcrit").disabled = false;
       document.getElementById("output").style.display = "none";
     }
 
